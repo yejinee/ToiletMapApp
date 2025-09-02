@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    // File Layout
+    "rootDir": "./src",       // 소스 코드 위치
+    "outDir": "./dist",       // 빌드 결과물 위치
+
+    // Module/Target
+    "module": "commonjs",     // Node.js 환경은 commonjs가 안정적
+    "target": "ES2020",       // async/await 지원
+    "moduleResolution": "node",
+    "esModuleInterop": true,  // import express from "express" 가능하게
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+
+    // Node.js 환경
+    "lib": ["ESNext"],
+    "types": ["node"],
+
+    // Source Maps / Declaration
+    "sourceMap": true,
+    "declaration": true,
+
+    // Strict Type-Checking
+    "strict": true,
+    "noImplicitAny": true,
+
+    // Build Optimization
+    "skipLibCheck": true,     // 라이브러리 타입 검사 스킵 (빌드 속도↑)
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src"],         // src 폴더 안에 있는 파일만 컴파일
+  "exclude": ["node_modules", "dist"] // 빌드 제외
+}
