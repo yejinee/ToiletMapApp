@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/apple.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.luz0911.frontend"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0b7c4086-5a1a-467d-9fd3-ebc687652ea0"
+      }
     }
   }
 }

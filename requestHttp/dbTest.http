@@ -1,0 +1,6 @@
+GET http://localhost:5000/healthz/db
+
+
+##### a2807a9f7419bb23ce0ce4578690a2db
+GET https://dapi.kakao.com/v2/local/search/category.json?category_group_code=PM9&radius=20000
+Authorization: KakaoAK a2807a9f7419bb23ce0ce4578690a2db

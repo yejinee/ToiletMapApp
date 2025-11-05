@@ -4,6 +4,8 @@ import ToiletListSheet from '../../components/ToiletListSheet';
 import { BlurView } from 'expo-blur';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+// 💡 새로 생성한 KakaoMapView 컴포넌트 Import
+import KakaoMapView from '../../components/KakaoMapView';
 
 export interface Checklist {
   public: boolean;
@@ -68,6 +70,24 @@ export default function RestroomFinder() {
     }, 3000);
   };
 
+  // useEffect(() => {
+  //   try {
+  //     const sortedToilets: Toilet[] = toilets
+  //       .map(t => ({ ...t, distance: getDistance(userLocation, t.coords) }))
+  //       .sort((a, b) => (a.distance || 0) - (b.distance || 0));
+  //     setToiletList(sortedToilets);
+  //   } catch (error) {
+  //     console.error("GPS 오류:", error);
+  //     showMessage("GPS를 사용할 수 없어 강남역을 기준으로 검색합니다.");
+  //     const sortedToilets: Toilet[] = toilets
+  //       .map(t => ({ ...t, distance: getDistance(userLocation, t.coords) }))
+  //       .sort((a, b) => (a.distance || 0) - (b.distance || 0));
+  //     setToiletList(sortedToilets);
+  //   }
+  //   setIsAuthReady(true);
+  //   setCurrentUserId('mock-user-id');
+  // }, []);
+
   useEffect(() => {
     try {
       const sortedToilets: Toilet[] = toilets
@@ -92,6 +112,34 @@ export default function RestroomFinder() {
       params: { toilet: JSON.stringify(toilet) }
     });
   };
+  
+// 💡 KakaoMapView의 onMarkerClick 이벤트 핸들러
+  const handleMarkerClick = (toiletId: string) => {
+    const selectedToilet = toiletList.find(t => t.id === toiletId);
+    if (selectedToilet) {
+      showDetail(selectedToilet);
+    }
+  };
+
+  // const showDetail = (toilet: Toilet) => {
+  //   router.push({
+  //     pathname: "/(tabs)/restroom_details",
+  //     params: { toilet: JSON.stringify(toilet) }
+  //   });
+  // };
+
+
+  /*
+   <View style={styles.mapContainer}>
+        <Image
+          source={{ uri: 'https://placehold.co/600x400/E2E8F0/94A3B8?text=Map+of+Gangnam' }}
+          style={styles.mapImage}
+        />
+        <View style={styles.userIdContainer}>
+          <Text style={styles.userIdText}>사용자 ID: {currentUserId || '로그인 중...'}</Text>
+        </View>
+      </View>
+  */
 
   return (
     <View style={styles.container}>
@@ -105,11 +153,16 @@ export default function RestroomFinder() {
         </Pressable>
       </View>
 
-      <View style={styles.mapContainer}>
-        <Image
-          source={{ uri: 'https://placehold.co/600x400/E2E8F0/94A3B8?text=Map+of+Gangnam' }}
-          style={styles.mapImage}
-        />
+    <View style={styles.mapContainer}>
+        {/* 💡 KakaoMapView 컴포넌트로 대체 */}
+        {toiletList.length > 0 && (
+          <KakaoMapView 
+            toilets={toiletList} 
+            userLocation={userLocation} 
+            onMarkerClick={handleMarkerClick} 
+          />
+        )}
+        
         <View style={styles.userIdContainer}>
           <Text style={styles.userIdText}>사용자 ID: {currentUserId || '로그인 중...'}</Text>
         </View>
@@ -189,13 +242,13 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
     position: 'relative',
-    justifyContent: 'center',
-    alignItems: 'center',
+    // justifyContent: 'center',
+    // alignItems: 'center',
   },
-  mapImage: {
-    width: '100%',
-    height: '100%',
-  },
+  // mapImage: {
+  //   width: '100%',
+  //   height: '100%',
+  // },
   userIdContainer: {
     position: 'absolute',
     top: 16,

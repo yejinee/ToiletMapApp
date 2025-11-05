@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgis/postgis:16-3.4        # PostgreSQL + PostGIS 포함 이미지
+    container_name: toiletmap-db
+    restart: always
+    environment:
+      POSTGRES_USER: toilet
+      POSTGRES_PASSWORD: toiletpw
+      POSTGRES_DB: toiletmap
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toilet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  adminer:                                # (선택) 웹으로 DB 보기
+    image: adminer:latest
+    container_name: toiletmap-adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  db_data:

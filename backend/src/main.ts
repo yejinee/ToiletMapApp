@@ -1,16 +1,40 @@
-import express, { Request, Response } from "express";
-import cors from "cors";
+import 'dotenv/config';
+import express, { Request, Response } from 'express';
+import cors from 'cors';
+import { verifyDbConnection, pool } from './config/db'; // ✅ DB 설정 import
 
 const app = express();
 const port = 5000;
-app.use(cors()); // 모든 도메인 허용
 
-// 라우팅 ("/" GET 요청)
-app.get("/", (req: Request, res: Response) => {
-  res.send("성공입니다.");
+// 미들웨어
+app.use(cors()); // 모든 도메인 허용
+app.use(express.json());
+
+// 기본 라우팅
+app.get('/', (req: Request, res: Response) => {
+  res.send('✅ 서버 연결 성공! 🚀');
+});
+
+// DB 연결 상태 확인용 (optional)
+app.get('/healthz/db', async (_req: Request, res: Response) => {
+  try {
+    const result = await pool.query('SELECT NOW() AS now');
+    res.json({ ok: true, now: result.rows[0].now });
+  } catch (error) {
+    console.error('[DB] 연결 오류:', error);
+    res.status(500).json({ ok: false, error: String(error) });
+  }
 });
 
 // 서버 실행
-app.listen(port, () => {
-  console.log(`🚀 서버가 정상적으로 실행되었습니다. http://localhost:${port}`);
-});
+(async () => {
+  try {
+    await verifyDbConnection(); // ✅ DB 연결 체크
+    app.listen(port, () => {
+      console.log(`🚀 서버 실행 중: http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error('❌ 서버 시작 실패:', error);
+    process.exit(1);
+  }
+})();
