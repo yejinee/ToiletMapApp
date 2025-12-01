@@ -54,3 +54,14 @@ npm install         # 의존성 설치
 npm start           # Expo 실행
 npx expo start -c
 ```
+
+
+#### 에러해결
+```
+rmdir node_modules -Recurse -Force
+Remove-Item package-lock.json -ErrorAction SilentlyContinue
+
+npm install
+
+npm ls react-native-reanimated react-native-worklets
+```
