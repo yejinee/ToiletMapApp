@@ -155,13 +155,15 @@ export default function RestroomFinder() {
 
     <View style={styles.mapContainer}>
         {/* 💡 KakaoMapView 컴포넌트로 대체 */}
-        {toiletList.length > 0 && (
+        {
+        // toiletList.length > 0 && (
           <KakaoMapView 
             toilets={toiletList} 
             userLocation={userLocation} 
             onMarkerClick={handleMarkerClick} 
           />
-        )}
+        // )
+        }
         
         <View style={styles.userIdContainer}>
           <Text style={styles.userIdText}>사용자 ID: {currentUserId || '로그인 중...'}</Text>
