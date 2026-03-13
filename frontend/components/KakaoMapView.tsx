@@ -20,6 +20,11 @@ interface KakaoMapViewProps {
   toilets: Toilet[];
   userLocation: { lat: number; lon: number; };
   onMarkerClick: (toiletId: string) => void;
+  onSearchMarkerClick?: (place: any) => void;
+  recenterTrigger?: number;
+  searchKeyword?: string;
+  selectedToiletId?: string | null;
+  selectedSearchPlaceId?: string | null;
 }
 
 /*

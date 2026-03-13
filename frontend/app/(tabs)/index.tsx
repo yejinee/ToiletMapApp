@@ -7,7 +7,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     axios
-      .get("http://121.170.141.42:5000/") // 👉 네 PC IP로 교체
+      .get("http://10.33.74.208:5000/") // 👉 네 PC IP로 교체
       .then((res) => setMessage(res.data))
       .catch((err) => setMessage("에러: " + err.message));
   }, []);
