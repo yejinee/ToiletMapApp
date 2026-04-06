@@ -1,26 +1,28 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Earthy Chic Design System
+// Inspired by Aesop's warm, natural, minimal aesthetic
+export const EarthyChic = {
+  amberBlack: '#1C1917',   // Main: 로고, 타이틀, 탭바
+  sandBeige: '#D2B48C',    // Sub 1: 서브 텍스트, 라인
+  terraLinen: '#F1ECE2',   // Sub 2: 앱 전체 배경
+  terracotta: '#A0522D',   // Point 1: 주요 액션 버튼
+  mossGreen: '#8A9A5B',    // Point 2: 시설 태그, 카테고리
+};
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: EarthyChic.amberBlack,
+    background: EarthyChic.terraLinen,
+    tint: EarthyChic.terracotta,
+    icon: EarthyChic.sandBeige,
+    tabIconDefault: EarthyChic.sandBeige,
+    tabIconSelected: EarthyChic.terracotta,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: EarthyChic.terraLinen,
+    background: EarthyChic.amberBlack,
+    tint: EarthyChic.sandBeige,
+    icon: EarthyChic.sandBeige,
+    tabIconDefault: EarthyChic.sandBeige,
+    tabIconSelected: EarthyChic.sandBeige,
   },
 };

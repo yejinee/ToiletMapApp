@@ -59,7 +59,7 @@ const createMapHtml = (toilets: Toilet[], userLocation: { lat: number; lon: numb
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
       <title>Kakao Map</title>
       <!-- 지도그리는 API 불러오기 -->
-      <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_JS_KEY}&libraries=services&autoload=false"></script>
+      <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_JS_KEY}&libraries=services&autoload=false"></script>
       <style>
         html, body, #map {
           width: 100%;
@@ -73,34 +73,35 @@ const createMapHtml = (toilets: Toilet[], userLocation: { lat: number; lon: numb
     <!-- 지도를 그릴 div -->
       <div id="map"></div>
       <script>
-        // 1. 지도 컨테이너와 옵션 설정
-        var container = document.getElementById('map');
-        var options = {
-          // ✅ 카카오 LatLng(위도, 경도) 객체 생성
-          center: new kakao.maps.LatLng(${centerLat}, ${centerLon}), 
-          level: 4 // 지도 확대 레벨
-        };
-        
-        // 2. 지도 생성
-        var map = new kakao.maps.Map(container, options);
-        
-        // 3. 화장실 마커 데이터 로드 및 표시
-        var toilets = ${markerDataJson};
+        // autoload=false이므로 kakao.maps.load() 안에서 초기화해야 함
+        kakao.maps.load(function() {
+          // 1. 지도 컨테이너와 옵션 설정
+          var container = document.getElementById('map');
+          var options = {
+            center: new kakao.maps.LatLng(${centerLat}, ${centerLon}),
+            level: 4
+          };
 
-        // 4. 각 화장실에 대해 마커 생성
-        toilets.forEach(function(toilet) {
-          var position = new kakao.maps.LatLng(toilet.lat, toilet.lon);
-          
-          var marker = new kakao.maps.Marker({
-            map: map,
-            position: position,
-            title: toilet.name,
-          });
-          
-          // 5. 마커 클릭 이벤트 등록
-          // 마커 클릭 시 React Native로 메시지 전송
-          kakao.maps.event.addListener(marker, 'click', function() {
+          // 2. 지도 생성
+          var map = new kakao.maps.Map(container, options);
+
+          // 3. 화장실 마커 데이터 로드 및 표시
+          var toilets = ${markerDataJson};
+
+          // 4. 각 화장실에 대해 마커 생성
+          toilets.forEach(function(toilet) {
+            var position = new kakao.maps.LatLng(toilet.lat, toilet.lon);
+
+            var marker = new kakao.maps.Marker({
+              map: map,
+              position: position,
+              title: toilet.name,
+            });
+
+            // 5. 마커 클릭 이벤트 등록
+            kakao.maps.event.addListener(marker, 'click', function() {
               window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markerClick', id: toilet.id }));
+            });
           });
         });
       </script>

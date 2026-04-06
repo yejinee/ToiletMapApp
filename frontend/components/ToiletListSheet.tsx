@@ -58,9 +58,9 @@ const ToiletListSheet: React.FC<ToiletListSheetProps> = ({ toiletList, showDetai
               {/* 편의시설 태그 */}
               <View style={styles.checklistContainer}>
                 {toilet.checklist.public && <Text style={styles.checklistTag}>공용</Text>}
-                {toilet.checklist.bidet && <Text style={[styles.checklistTag, { backgroundColor: '#DBEAFE' }]}>비데</Text>}
-                {toilet.checklist.paper && <Text style={[styles.checklistTag, { backgroundColor: '#D1FAE5' }]}>휴지</Text>}
-                {toilet.checklist.accessible && <Text style={[styles.checklistTag, { backgroundColor: '#EAD1FA' }]}>장애인</Text>}
+                {toilet.checklist.bidet && <Text style={[styles.checklistTag, { backgroundColor: '#A0522D' }]}>비데</Text>}
+                {toilet.checklist.paper && <Text style={styles.checklistTag}>휴지</Text>}
+                {toilet.checklist.accessible && <Text style={[styles.checklistTag, { backgroundColor: '#D2B48C', color: '#1C1917' }]}>장애인</Text>}
               </View>
 
             </Pressable>
@@ -78,15 +78,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '66.6%',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F1ECE2', // Terra Linen
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    shadowColor: '#000',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: -5 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 10,
     elevation: 10,
     paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#D2B48C', // Sand Beige
   },
   // 접힌 상태: 핸들만 보이도록 높이 56px
   sheetCollapsed: {
@@ -97,18 +99,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 8,
   },
-  // 핸들 바 (회색 막대)
+  // 핸들 바 (Sand Beige 막대)
   sheetHandle: {
     width: 48,
     height: 4,
-    backgroundColor: '#D1D5DB',
+    backgroundColor: '#D2B48C', // Sand Beige
     borderRadius: 9999,
     marginBottom: 4,
   },
   // "목록 열기 / 닫기" 힌트 텍스트
   toggleHint: {
     fontSize: 11,
-    color: '#9CA3AF',
+    color: '#D2B48C', // Sand Beige
   },
   scrollView: {
     paddingHorizontal: 16,
@@ -116,14 +118,16 @@ const styles = StyleSheet.create({
   // 화장실 카드 1개
   listItem: {
     padding: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FAF7F2', // 따뜻한 오프화이트
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
     elevation: 3,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E8E0D4',
   },
   listItemHeader: {
     flexDirection: 'row',
@@ -131,18 +135,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   listItemName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#1C1917', // Amber Black
+    letterSpacing: 0.2,
   },
   listItemDistance: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#D2B48C', // Sand Beige
     fontWeight: '500',
   },
   listItemAddress: {
-    fontSize: 14,
-    color: '#6B7280',
+    fontSize: 13,
+    color: '#D2B48C', // Sand Beige
     marginTop: 4,
   },
   listItemRating: {
@@ -153,26 +158,27 @@ const styles = StyleSheet.create({
   listItemRatingText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#FFC107',
+    color: '#A0522D', // Terracotta
   },
   listItemRatingCount: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#D2B48C', // Sand Beige
     marginLeft: 4,
   },
   checklistContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
-    gap: 8,
+    marginTop: 10,
+    gap: 6,
   },
   checklistTag: {
     fontSize: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#8A9A5B', // Moss Green
     borderRadius: 9999,
-    color: '#4B5563',
+    color: '#F1ECE2',            // Terra Linen
+    fontWeight: '500',
   },
 });
 

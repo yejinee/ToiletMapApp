@@ -74,6 +74,6 @@ return (
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-  loadingText: { fontSize: 18, color: '#555' },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F1ECE2' },
+  loadingText: { fontSize: 18, color: '#1C1917', fontWeight: '500', letterSpacing: 1 },
 });

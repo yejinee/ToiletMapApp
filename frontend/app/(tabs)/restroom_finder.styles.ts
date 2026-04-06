@@ -3,14 +3,12 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F1ECE2', // Terra Linen
   },
   searchBar: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    backgroundColor: '#1C1917', // Amber Black
     alignItems: 'center',
     paddingTop: 50,
   },
@@ -19,9 +17,10 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     paddingHorizontal: 16,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#2C2520',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: '#D2B48C', // Sand Beige
+    color: '#F1ECE2',       // Terra Linen text
   },
   searchButton: {
     marginLeft: 8,
@@ -30,10 +29,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFC107',
-    shadowColor: '#000',
+    backgroundColor: '#A0522D', // Terracotta
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
@@ -48,10 +47,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F1ECE2', // Terra Linen
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -66,10 +65,12 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   messageBox: {
-    backgroundColor: '#333333',
+    backgroundColor: '#1C1917', // Amber Black
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#D2B48C',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   messageText: {
-    color: '#FFFFFF',
+    color: '#F1ECE2', // Terra Linen
     textAlign: 'center',
   },
   previewCard: {
@@ -85,15 +86,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
+    backgroundColor: '#F1ECE2', // Terra Linen
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
     elevation: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#D2B48C',
   },
   previewCardClose: {
     position: 'absolute',
@@ -104,12 +107,13 @@ const styles = StyleSheet.create({
   previewCardName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#1C1917', // Amber Black
     marginRight: 28,
+    letterSpacing: 0.3,
   },
   previewCardAddress: {
     fontSize: 13,
-    color: '#6B7280',
+    color: '#D2B48C', // Sand Beige
     marginTop: 4,
   },
   previewCardRatingRow: {
@@ -121,42 +125,44 @@ const styles = StyleSheet.create({
   previewCardRatingText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#FFC107',
+    color: '#A0522D', // Terracotta
   },
   previewCardRatingCount: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: '#D2B48C', // Sand Beige
   },
   previewCardDistance: {
     fontSize: 12,
-    color: '#6B7280',
+    color: '#D2B48C', // Sand Beige
     marginLeft: 'auto',
   },
   previewCardTags: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
-    marginTop: 10,
+    marginTop: 12,
   },
   checklistTag: {
     fontSize: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#8A9A5B', // Moss Green
     borderRadius: 9999,
-    color: '#4B5563',
+    color: '#F1ECE2',            // Terra Linen text
+    fontWeight: '500',
   },
   previewCardDetailBtn: {
-    marginTop: 14,
-    backgroundColor: '#FF8C00',
-    borderRadius: 10,
-    paddingVertical: 10,
+    marginTop: 16,
+    backgroundColor: '#A0522D', // Terracotta
+    borderRadius: 12,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   previewCardDetailText: {
-    color: '#FFFFFF',
+    color: '#F1ECE2', // Terra Linen
     fontWeight: 'bold',
     fontSize: 14,
+    letterSpacing: 0.5,
   },
 });
 

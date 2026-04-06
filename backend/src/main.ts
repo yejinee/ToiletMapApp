@@ -1,10 +1,10 @@
-import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { verifyDbConnection, pool } from './config/db'; // ✅ DB 설정 import
+import { config } from './config';
+import { verifyDbConnection, pool } from './config/db';
 
 const app = express();
-const port = 5000;
+const { port } = config;
 
 // 미들웨어
 app.use(cors()); // 모든 도메인 허용

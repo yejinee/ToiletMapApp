@@ -39,46 +39,47 @@ const RatingModal: React.FC<RatingModalProps> = ({ isVisible, onClose, onSubmit,
         >
           <View style={styles.modalContent}>
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <Ionicons name="close-circle" size={32} color="#D1D5DB" />
+              <Ionicons name="close-circle" size={32} color="#D2B48C" />
             </Pressable>
             <Text style={styles.title}>이 화장실 어땠나요?</Text>
             <Text style={styles.subtitle}>별점과 속성을 선택하고, 리뷰를 남겨주세요.</Text>
-            
+
             <View style={styles.starRatingContainer}>
               {[5, 4, 3, 2, 1].map((star) => (
                 <Pressable key={star} onPress={() => handleStarPress(star)}>
-                  <Ionicons 
-                    name={star <= ratingData.star ? 'star' : 'star-outline'} 
-                    size={40} 
-                    color="#FFC107"
+                  <Ionicons
+                    name={star <= ratingData.star ? 'star' : 'star-outline'}
+                    size={40}
+                    color="#A0522D"
                   />
                 </Pressable>
               ))}
             </View>
-            
+
             <View style={styles.checklistGroup}>
               <Pressable style={[styles.toggleBtn, ratingData.checklist.public && styles.toggleBtnToggled]} onPress={() => handleToggleChecklist('public')}>
-                <Text style={styles.toggleText}>공용 화장실</Text>
+                <Text style={[styles.toggleText, ratingData.checklist.public && styles.toggleTextToggled]}>공용 화장실</Text>
               </Pressable>
               <Pressable style={[styles.toggleBtn, ratingData.checklist.bidet && styles.toggleBtnToggled]} onPress={() => handleToggleChecklist('bidet')}>
-                <Text style={styles.toggleText}>비데 있음</Text>
+                <Text style={[styles.toggleText, ratingData.checklist.bidet && styles.toggleTextToggled]}>비데 있음</Text>
               </Pressable>
               <Pressable style={[styles.toggleBtn, ratingData.checklist.paper && styles.toggleBtnToggled]} onPress={() => handleToggleChecklist('paper')}>
-                <Text style={styles.toggleText}>휴지 구비</Text>
+                <Text style={[styles.toggleText, ratingData.checklist.paper && styles.toggleTextToggled]}>휴지 구비</Text>
               </Pressable>
               <Pressable style={[styles.toggleBtn, ratingData.checklist.accessible && styles.toggleBtnToggled]} onPress={() => handleToggleChecklist('accessible')}>
-                <Text style={styles.toggleText}>장애인 화장실</Text>
+                <Text style={[styles.toggleText, ratingData.checklist.accessible && styles.toggleTextToggled]}>장애인 화장실</Text>
               </Pressable>
             </View>
-            
+
             <TextInput
               style={styles.reviewInput}
               placeholder="자세한 리뷰를 남겨주세요..."
+              placeholderTextColor="#D2B48C"
               multiline
               value={ratingData.text}
               onChangeText={(text) => setRatingData(prev => ({ ...prev, text }))}
             />
-            
+
             <Pressable style={styles.saveButton} onPress={onSubmit}>
               <Text style={styles.saveButtonText}>저장하기</Text>
             </Pressable>
@@ -98,14 +99,16 @@ const styles = StyleSheet.create({
   modalContent: {
     width: width * 0.9,
     maxWidth: 400,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F1ECE2', // Terra Linen
     borderRadius: 24,
     padding: 24,
-    shadowColor: '#000',
+    shadowColor: '#1C1917',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 5,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 8,
+    borderWidth: 1,
+    borderColor: '#E8E0D4',
   },
   closeButton: {
     position: 'absolute',
@@ -116,13 +119,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1F2937',
+    color: '#1C1917', // Amber Black
     textAlign: 'center',
     marginBottom: 8,
+    letterSpacing: 0.3,
   },
   subtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: '#D2B48C', // Sand Beige
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -130,6 +134,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 24,
+    gap: 4,
   },
   checklistGroup: {
     flexDirection: 'row',
@@ -142,40 +147,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderWidth: 1.5,
+    borderColor: '#D2B48C', // Sand Beige
+    backgroundColor: 'transparent',
   },
   toggleBtnToggled: {
-    backgroundColor: '#FFC107',
-    borderColor: '#FFC107',
+    backgroundColor: '#8A9A5B', // Moss Green
+    borderColor: '#8A9A5B',
   },
   toggleText: {
     fontSize: 14,
-    color: '#4B5563',
+    color: '#1C1917', // Amber Black
+  },
+  toggleTextToggled: {
+    color: '#F1ECE2', // Terra Linen
+    fontWeight: '600',
   },
   reviewInput: {
     width: '100%',
     minHeight: 120,
     padding: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderWidth: 1.5,
+    borderColor: '#D2B48C', // Sand Beige
     borderRadius: 12,
     textAlignVertical: 'top',
     fontSize: 14,
-    color: '#374151',
+    color: '#1C1917', // Amber Black
+    backgroundColor: '#FAF7F2',
   },
   saveButton: {
     width: '100%',
-    paddingVertical: 12,
-    backgroundColor: '#FF8C00',
-    borderRadius: 12,
+    paddingVertical: 14,
+    backgroundColor: '#A0522D', // Terracotta
+    borderRadius: 14,
     alignItems: 'center',
     marginTop: 24,
   },
   saveButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#F1ECE2', // Terra Linen
+    letterSpacing: 0.5,
   },
 });
 

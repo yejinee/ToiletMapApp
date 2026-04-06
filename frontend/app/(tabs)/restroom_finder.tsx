@@ -202,7 +202,7 @@ export default function RestroomFinder() {
         />
         {/* 검색 버튼: 누르면 searchKeyword를 업데이트 → KakaoMapView가 감지해서 검색 실행 */}
         <Pressable style={styles.searchButton} onPress={() => setSearchKeyword(searchText)}>
-          <FontAwesome name="search" size={20} color="#6B7280" />
+          <FontAwesome name="search" size={20} color="#F1ECE2" />
         </Pressable>
       </View>
 
@@ -235,7 +235,7 @@ export default function RestroomFinder() {
           style={styles.recenterButton}
           onPress={() => setRecenterTrigger(v => v + 1)}
         >
-          <FontAwesome name="location-arrow" size={20} color="#4A90E2" />
+          <FontAwesome name="location-arrow" size={20} color="#A0522D" />
         </Pressable>
       </View>
 
@@ -244,7 +244,7 @@ export default function RestroomFinder() {
         <View style={styles.previewCard}>
           {/* 닫기 버튼 */}
           <Pressable style={styles.previewCardClose} onPress={() => setSelectedToilet(null)}>
-            <Ionicons name="close" size={20} color="#6B7280" />
+            <Ionicons name="close" size={20} color="#D2B48C" />
           </Pressable>
 
           <Text style={styles.previewCardName}>{selectedToilet.name}</Text>
@@ -262,9 +262,9 @@ export default function RestroomFinder() {
           {/* 편의시설 태그 */}
           <View style={styles.previewCardTags}>
             {selectedToilet.checklist.public && <Text style={styles.checklistTag}>공용</Text>}
-            {selectedToilet.checklist.bidet && <Text style={[styles.checklistTag, { backgroundColor: '#DBEAFE' }]}>비데</Text>}
-            {selectedToilet.checklist.paper && <Text style={[styles.checklistTag, { backgroundColor: '#D1FAE5' }]}>휴지</Text>}
-            {selectedToilet.checklist.accessible && <Text style={[styles.checklistTag, { backgroundColor: '#EAD1FA' }]}>장애인</Text>}
+            {selectedToilet.checklist.bidet && <Text style={[styles.checklistTag, { backgroundColor: '#A0522D' }]}>비데</Text>}
+            {selectedToilet.checklist.paper && <Text style={styles.checklistTag}>휴지</Text>}
+            {selectedToilet.checklist.accessible && <Text style={[styles.checklistTag, { backgroundColor: '#D2B48C', color: '#1C1917' }]}>장애인</Text>}
           </View>
 
           {/* 상세보기 버튼 → restroom_details 페이지로 이동 */}
@@ -299,8 +299,8 @@ export default function RestroomFinder() {
           {/* 편의시설 태그 (가데이터 - 추후 API 연동) */}
           <View style={styles.previewCardTags}>
             <Text style={styles.checklistTag}>공용</Text>
-            <Text style={[styles.checklistTag, { backgroundColor: '#DBEAFE' }]}>비데</Text>
-            <Text style={[styles.checklistTag, { backgroundColor: '#D1FAE5' }]}>휴지</Text>
+            <Text style={[styles.checklistTag, { backgroundColor: '#A0522D' }]}>비데</Text>
+            <Text style={styles.checklistTag}>휴지</Text>
           </View>
 
           {/* 상세보기 버튼 (추후 연동) */}
