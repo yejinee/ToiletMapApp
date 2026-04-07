@@ -13,7 +13,9 @@ interface KakaoMapViewProps {
   onMarkerClick: (toiletId: string) => void;
   onSearchMarkerClick?: (place: SearchPlace) => void;
   onNearbyPlacesFound?: (places: SearchPlace[]) => void;
+  onMapCenterChange?: (loc: { lat: number; lon: number }) => void;
   nearbyPlaces?: SearchPlace[];
+  searchResults?: SearchPlace[];
   recenterTrigger?: number;
   searchKeyword?: string;
   selectedToiletId?: string | null;
@@ -80,6 +82,16 @@ const createMapHtml = (toilets: Toilet[], userLocation: { lat: number; lon: numb
           var map = new kakao.maps.Map(container, options);
           window.kakaoMap = map;
 
+          // 지도 드래그/줌 완료 시 중심 좌표를 RN으로 전송
+          kakao.maps.event.addListener(map, 'idle', function() {
+            var center = map.getCenter();
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'mapCenterChange',
+              lat: center.getLat(),
+              lon: center.getLng()
+            }));
+          });
+
           var toilets = ${markerDataJson};
 
           /* ── 현재 위치 오버레이 (Moss Green 도트) ── */
@@ -120,6 +132,46 @@ const createMapHtml = (toilets: Toilet[], userLocation: { lat: number; lon: numb
             });
           });
 
+          /* 검색 결과 마커 그리기 — 기존 검색 마커 제거 후 새로 그림 */
+          var searchOverlays = [];
+          window.drawSearchMarkers = function(places) {
+            searchOverlays.forEach(function(o) { o.setMap(null); });
+            searchOverlays = [];
+            if (!places || places.length === 0) return;
+
+            // 첫 번째 결과로 지도 이동
+            window.kakaoMap.setCenter(new kakao.maps.LatLng(places[0].lat, places[0].lon));
+            window.kakaoMap.setLevel(4);
+
+            var searchPinSvg = ''
+              + '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="40" viewBox="0 0 30 40">'
+              + '<circle cx="15" cy="14" r="12" fill="#1C1917" stroke="#F1ECE2" stroke-width="2.5"/>'
+              + '<circle cx="15" cy="14" r="7" fill="none" stroke="#F1ECE2" stroke-width="1" opacity="0.5"/>'
+              + '<polygon points="9,24 21,24 15,40" fill="#1C1917"/>'
+              + '</svg>';
+
+            places.forEach(function(place) {
+              var el = document.createElement('div');
+              el.style.cssText = 'cursor:pointer;width:30px;height:40px;filter:drop-shadow(0 3px 6px rgba(28,25,23,0.5));';
+              el.innerHTML = searchPinSvg;
+              el.addEventListener('click', function() {
+                window.ReactNativeWebView.postMessage(
+                  JSON.stringify({ type: 'nearbyMarkerClick', place: place })
+                );
+              });
+              var overlay = new kakao.maps.CustomOverlay({
+                map: window.kakaoMap, position: new kakao.maps.LatLng(place.lat, place.lon),
+                content: el, zIndex: 6, yAnchor: 1.0
+              });
+              searchOverlays.push(overlay);
+            });
+          };
+
+          window.clearSearchMarkers = function() {
+            searchOverlays.forEach(function(o) { o.setMap(null); });
+            searchOverlays = [];
+          };
+
           /* 근처 장소 마커는 RN에서 REST API로 받아서 injectJavaScript로 그림 */
           window.drawNearbyMarkers = function(places) {
             var pinSvg = ''
@@ -155,7 +207,9 @@ const KakaoMapView: React.FC<KakaoMapViewProps> = ({
   onMarkerClick,
   onSearchMarkerClick,
   onNearbyPlacesFound,
+  onMapCenterChange,
   nearbyPlaces,
+  searchResults,
   recenterTrigger,
 }) => {
   const webViewRef = useRef<WebView>(null);
@@ -176,12 +230,20 @@ const KakaoMapView: React.FC<KakaoMapViewProps> = ({
     if (!nearbyPlaces || nearbyPlaces.length === 0) return;
     const placesJson = JSON.stringify(nearbyPlaces);
     webViewRef.current?.injectJavaScript(`
-      if (window.drawNearbyMarkers) {
-        window.drawNearbyMarkers(${placesJson});
-      }
+      if (window.drawNearbyMarkers) { window.drawNearbyMarkers(${placesJson}); }
       true;
     `);
   }, [nearbyPlaces]);
+
+  // searchResults가 업데이트되면 검색 결과 마커 그리기
+  useEffect(() => {
+    if (searchResults === undefined) return;
+    const json = JSON.stringify(searchResults);
+    webViewRef.current?.injectJavaScript(`
+      if (window.drawSearchMarkers) { window.drawSearchMarkers(${json}); }
+      true;
+    `);
+  }, [searchResults]);
 
   const handleWebViewMessage = (event: any) => {
     try {
@@ -192,6 +254,8 @@ const KakaoMapView: React.FC<KakaoMapViewProps> = ({
         onSearchMarkerClick?.(data.place);
       } else if (data.type === 'nearbyPlaces') {
         onNearbyPlacesFound?.(data.places);
+      } else if (data.type === 'mapCenterChange') {
+        onMapCenterChange?.({ lat: data.lat, lon: data.lon });
       }
     } catch (e) {
       console.error("WebView 메시지 파싱 오류:", e);
