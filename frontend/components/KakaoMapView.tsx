@@ -1,43 +1,29 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { Toilet } from '../app/(tabs)/restroom_finder';  // 화장실(변기) 데이터 타입 import
+import { Toilet, SearchPlace } from '../app/(tabs)/restroom_finder';
 
-//const KAKAO_MAP_JS_KEY = Constants.expoConfig?.extra?.EXPO_PUBLIC_KAKAO_MAP_JS_KEY || process.env.EXPO_PUBLIC_KAKAO_MAP_JS_KEY;
 const KAKAO_MAP_JS_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_JS_KEY;
 
-// 💡 경고: 만약 KAKAO_MAP_JS_KEY가 undefined이면 여기서 에러가 날 수 있습니다.
 console.log("Kakao Key Loaded:", KAKAO_MAP_JS_KEY ? "Loaded" : "Undefined");
-console.log("Key : "  + KAKAO_MAP_JS_KEY);
 
-/*
-✅ 이 컴포넌트가 받을 props 타입 정의
-  - toilets: 화장실 리스트
-  - userLocation: 사용자 현재 위치 (위도/경도)
-  - onMarkerClick: 마커 클릭 시 부모에게 선택된 화장실 id 알려주는 콜백
-*/
 interface KakaoMapViewProps {
   toilets: Toilet[];
   userLocation: { lat: number; lon: number; };
   onMarkerClick: (toiletId: string) => void;
-  onSearchMarkerClick?: (place: any) => void;
+  onSearchMarkerClick?: (place: SearchPlace) => void;
+  onNearbyPlacesFound?: (places: SearchPlace[]) => void;
+  nearbyPlaces?: SearchPlace[];
   recenterTrigger?: number;
   searchKeyword?: string;
   selectedToiletId?: string | null;
   selectedSearchPlaceId?: string | null;
 }
 
-/*
-✅ WebView에 넣을 HTML 문자열을 만들어주는 함수 (Toilet 목록을 지도에 마커표시)
-  - toilets: 마커로 찍을 화장실 목록
-  - userLocation: 지도 중심으로 사용할 사용자 위치
-*/
 const createMapHtml = (toilets: Toilet[], userLocation: { lat: number; lon: number; }) => {
-  // 지도의 중심을 사용자 위치로 잡음
   const centerLat = userLocation.lat;
   const centerLon = userLocation.lon;
-  
-  // Toilet[] 데이터를 브라우저에서 쓰기 좋은 형태로 변환
+
   const markerData = toilets.map(t => ({
     name: t.name,
     lat: t.coords.lat,
@@ -46,11 +32,6 @@ const createMapHtml = (toilets: Toilet[], userLocation: { lat: number; lon: numb
   }));
   const markerDataJson = JSON.stringify(markerData);
 
-  /*
-  ✅ 카카오맵 Web API를 사용하는 HTML 구조 정의
-    - 카카오 지도 JS SDK를 불러와서
-    - 지도 생성 + 마커 찍기 + 마커 클릭 이벤트 설정까지 담당
-  */
   return `
     <!DOCTYPE html>
     <html>
@@ -58,51 +39,109 @@ const createMapHtml = (toilets: Toilet[], userLocation: { lat: number; lon: numb
       <meta charset="utf-8"/>
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
       <title>Kakao Map</title>
-      <!-- 지도그리는 API 불러오기 -->
       <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_MAP_JS_KEY}&libraries=services&autoload=false"></script>
       <style>
-        html, body, #map {
-          width: 100%;
-          height: 100%;
-          margin: 0;
-          padding: 0;
+        html, body, #map { width:100%; height:100%; margin:0; padding:0; }
+
+        /* 현재 위치 도트 (Moss Green) */
+        .loc-dot {
+          position:absolute; top:0; left:0;
+          width:16px; height:16px;
+          border-radius:50%;
+          background:#8A9A5B;
+          border:2.5px solid #fff;
+          box-shadow:0 2px 6px rgba(28,25,23,0.35);
+          z-index:2;
+        }
+        .loc-pulse {
+          position:absolute; top:-7px; left:-7px;
+          width:30px; height:30px;
+          border-radius:50%;
+          background:rgba(138,154,91,0.22);
+          animation:pulse 2s ease-out infinite;
+          z-index:1;
+        }
+        @keyframes pulse {
+          0%   { transform:scale(0.8); opacity:0.9; }
+          70%  { transform:scale(1.5); opacity:0; }
+          100% { transform:scale(0.8); opacity:0; }
         }
       </style>
     </head>
     <body>
-    <!-- 지도를 그릴 div -->
       <div id="map"></div>
       <script>
-        // autoload=false이므로 kakao.maps.load() 안에서 초기화해야 함
         kakao.maps.load(function() {
-          // 1. 지도 컨테이너와 옵션 설정
           var container = document.getElementById('map');
           var options = {
             center: new kakao.maps.LatLng(${centerLat}, ${centerLon}),
             level: 4
           };
-
-          // 2. 지도 생성
           var map = new kakao.maps.Map(container, options);
+          window.kakaoMap = map;
 
-          // 3. 화장실 마커 데이터 로드 및 표시
           var toilets = ${markerDataJson};
 
-          // 4. 각 화장실에 대해 마커 생성
+          /* ── 현재 위치 오버레이 (Moss Green 도트) ── */
+          var locDiv = document.createElement('div');
+          locDiv.style.cssText = 'position:relative;width:16px;height:16px;';
+          locDiv.innerHTML = '<div class="loc-pulse"></div><div class="loc-dot"></div>';
+          new kakao.maps.CustomOverlay({
+            map: map,
+            position: new kakao.maps.LatLng(${centerLat}, ${centerLon}),
+            content: locDiv,
+            zIndex: 10
+          });
+
+          /* ── 화장실 마커 (Terracotta SVG 핀) ── */
+          var toiletPinSvg = ''
+            + '<svg xmlns="http://www.w3.org/2000/svg" width="34" height="46" viewBox="0 0 34 46">'
+            + '<circle cx="17" cy="17" r="15" fill="#A0522D" stroke="#F1ECE2" stroke-width="2.5"/>'
+            + '<circle cx="17" cy="17" r="10.5" fill="none" stroke="#F1ECE2" stroke-width="1" opacity="0.45"/>'
+            + '<polygon points="11,29 23,29 17,46" fill="#A0522D"/>'
+            + '<text x="17" y="22" text-anchor="middle" fill="#F1ECE2" font-size="11" font-weight="700" font-family="Arial,sans-serif">WC</text>'
+            + '</svg>';
+
           toilets.forEach(function(toilet) {
-            var position = new kakao.maps.LatLng(toilet.lat, toilet.lon);
-
-            var marker = new kakao.maps.Marker({
-              map: map,
-              position: position,
-              title: toilet.name,
+            var pinDiv = document.createElement('div');
+            pinDiv.style.cssText = 'cursor:pointer;width:34px;height:46px;filter:drop-shadow(0 3px 6px rgba(28,25,23,0.45));';
+            pinDiv.innerHTML = toiletPinSvg;
+            pinDiv.addEventListener('click', function() {
+              window.ReactNativeWebView.postMessage(
+                JSON.stringify({ type: 'markerClick', id: toilet.id })
+              );
             });
-
-            // 5. 마커 클릭 이벤트 등록
-            kakao.maps.event.addListener(marker, 'click', function() {
-              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'markerClick', id: toilet.id }));
+            new kakao.maps.CustomOverlay({
+              map: map,
+              position: new kakao.maps.LatLng(toilet.lat, toilet.lon),
+              content: pinDiv,
+              zIndex: 5,
+              yAnchor: 1.0
             });
           });
+
+          /* 근처 장소 마커는 RN에서 REST API로 받아서 injectJavaScript로 그림 */
+          window.drawNearbyMarkers = function(places) {
+            var pinSvg = ''
+              + '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="34" viewBox="0 0 26 34">'
+              + '<circle cx="13" cy="12" r="10" fill="#D2B48C" stroke="#F1ECE2" stroke-width="2"/>'
+              + '<polygon points="8,20 18,20 13,34" fill="#D2B48C"/>'
+              + '</svg>';
+            places.forEach(function(place) {
+              var el = document.createElement('div');
+              el.style.cssText = 'cursor:pointer;width:26px;height:34px;filter:drop-shadow(0 2px 4px rgba(28,25,23,0.3));';
+              el.innerHTML = pinSvg;
+              el.addEventListener('click', function() {
+                window.ReactNativeWebView.postMessage(
+                  JSON.stringify({ type: 'nearbyMarkerClick', place: place })
+                );
+              });
+              new kakao.maps.CustomOverlay({
+                map: map, position: new kakao.maps.LatLng(place.lat, place.lon),
+                content: el, zIndex: 3, yAnchor: 1.0
+              });
+            });
+          };
         });
       </script>
     </body>
@@ -110,18 +149,49 @@ const createMapHtml = (toilets: Toilet[], userLocation: { lat: number; lon: numb
   `;
 };
 
-// ✅ 실제로 RN 화면에서 사용하게 될 컴포넌트
-const KakaoMapView: React.FC<KakaoMapViewProps> = ({ toilets, userLocation, onMarkerClick }) => {
-  
-  // 💡 WebView로부터 메시지를 수신하는 핸들러 함수
-  // (마커 클릭 시 WebView에서 postMessage 한 데이터가 여기로 옴)
+const KakaoMapView: React.FC<KakaoMapViewProps> = ({
+  toilets,
+  userLocation,
+  onMarkerClick,
+  onSearchMarkerClick,
+  onNearbyPlacesFound,
+  nearbyPlaces,
+  recenterTrigger,
+}) => {
+  const webViewRef = useRef<WebView>(null);
+
+  // 현재 위치로 지도 이동
+  useEffect(() => {
+    if (!recenterTrigger) return;
+    webViewRef.current?.injectJavaScript(`
+      if (window.kakaoMap) {
+        window.kakaoMap.setCenter(new kakao.maps.LatLng(${userLocation.lat}, ${userLocation.lon}));
+      }
+      true;
+    `);
+  }, [recenterTrigger]);
+
+  // nearbyPlaces가 업데이트되면 WebView 안의 drawNearbyMarkers 호출
+  useEffect(() => {
+    if (!nearbyPlaces || nearbyPlaces.length === 0) return;
+    const placesJson = JSON.stringify(nearbyPlaces);
+    webViewRef.current?.injectJavaScript(`
+      if (window.drawNearbyMarkers) {
+        window.drawNearbyMarkers(${placesJson});
+      }
+      true;
+    `);
+  }, [nearbyPlaces]);
+
   const handleWebViewMessage = (event: any) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.type === 'markerClick') {
-        // 부모 컴포넌트(restroom_finder)에서 넘겨준 콜백 실행
-        // → 선택된 화장실 id 전달
         onMarkerClick(data.id);
+      } else if (data.type === 'nearbyMarkerClick') {
+        onSearchMarkerClick?.(data.place);
+      } else if (data.type === 'nearbyPlaces') {
+        onNearbyPlacesFound?.(data.places);
       }
     } catch (e) {
       console.error("WebView 메시지 파싱 오류:", e);
@@ -130,26 +200,25 @@ const KakaoMapView: React.FC<KakaoMapViewProps> = ({ toilets, userLocation, onMa
 
   return (
     <WebView
+      ref={webViewRef}
       style={styles.mapWebView}
       source={{ html: createMapHtml(toilets, userLocation) }}
-      // 💡 WebView에서 RN으로 메시지를 보낼 때 호출
       onMessage={handleWebViewMessage}
       javaScriptEnabled={true}
-      // 💡 window.ReactNativeWebView.postMessage 함수를 전역으로 설정하여 통신 가능하게 함
       injectedJavaScript={`
         window.postMessage = function(data) {
           window.ReactNativeWebView.postMessage(data);
         };
-        true; // 이 값은 항상 true로 반환해야 경고가 사라집니다.
+        true;
       `}
       originWhitelist={['*']}
-      allowFileAccess={true} // 로컬 파일 접근 허용 (필요시)
+      allowFileAccess={true}
     />
   );
 };
 
 const styles = StyleSheet.create({
-  mapWebView: { 
+  mapWebView: {
     width: '100%',
     height: '100%',
   },

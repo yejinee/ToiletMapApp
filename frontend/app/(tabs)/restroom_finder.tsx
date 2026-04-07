@@ -17,6 +17,8 @@ import { StyleSheet, Text, View, Pressable, TextInput } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import * as Location from 'expo-location';
+import axios from 'axios';
 
 import KakaoMapView from '../../components/KakaoMapView';
 import ToiletListSheet from '../../components/ToiletListSheet';
@@ -35,6 +37,7 @@ export interface SearchPlace {
   category: string; // 카카오 카테고리 (예: "음식점 > 카페")
   lat: number;      // 위도
   lon: number;      // 경도
+  distance?: string; // REST API 응답 거리 (미터, 문자열)
 }
 
 /** 화장실 편의시설 체크리스트 */
@@ -121,6 +124,40 @@ export default function RestroomFinder() {
   // 검색 결과 마커를 클릭했을 때 선택된 장소 데이터 (null이면 미선택)
   const [selectedSearchPlace, setSelectedSearchPlace] = useState<SearchPlace | null>(null);
 
+  // 카카오 카테고리 검색으로 받은 근처 장소 목록 (음식점/카페)
+  const [nearbyPlaces, setNearbyPlaces] = useState<SearchPlace[]>([]);
+
+  // ─── 카카오 REST API로 근처 장소 검색 (음식점 + 카페) ───
+  const fetchNearbyPlaces = async (loc: { lat: number; lon: number }) => {
+    const REST_KEY = process.env.EXPO_PUBLIC_KAKAO_REST_KEY;
+    const headers = { Authorization: `KakaoAK ${REST_KEY}` };
+    const params = { x: loc.lon, y: loc.lat, radius: 500, size: 15 };
+    try {
+      const [fd6, ce7] = await Promise.all([
+        axios.get('https://dapi.kakao.com/v2/local/search/category.json', { headers, params: { ...params, category_group_code: 'FD6' } }),
+        axios.get('https://dapi.kakao.com/v2/local/search/category.json', { headers, params: { ...params, category_group_code: 'CE7' } }),
+      ]);
+      const toPlace = (item: any): SearchPlace => ({
+        id: item.id,
+        name: item.place_name,
+        address: item.road_address_name || item.address_name,
+        phone: item.phone,
+        category: item.category_name,
+        lat: parseFloat(item.y),
+        lon: parseFloat(item.x),
+        distance: item.distance,
+      });
+      const all = [
+        ...(fd6.data.documents || []).map(toPlace),
+        ...(ce7.data.documents || []).map(toPlace),
+      ].sort((a: any, b: any) => parseInt(a.distance || '0') - parseInt(b.distance || '0'));
+      console.log('[nearbyPlaces] REST API 결과:', all.length);
+      setNearbyPlaces(all);
+    } catch (e) {
+      console.error('[nearbyPlaces] REST API 오류:', e);
+    }
+  };
+
   // ─── 알림 메시지 표시 (3초 후 자동으로 사라짐) ───
   const showMessage = (msg: string) => {
     setMessage(msg);
@@ -138,26 +175,35 @@ export default function RestroomFinder() {
       setToiletList(sorted);
     };
 
-    if (navigator.geolocation) {
-      // GPS 허용된 경우: 실제 위치 사용
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const loc = { lat: position.coords.latitude, lon: position.coords.longitude };
-          setUserLocation(loc);
-          sortToilets(loc);
-        },
-        (error) => {
-          // GPS 거부/실패한 경우: 기본값(강남역) 사용
-          console.error('GPS 오류:', error);
-          showMessage('GPS를 사용할 수 없어 강남역을 기준으로 검색합니다.');
-          sortToilets(userLocation);
-        }
-      );
-    } else {
-      // 브라우저가 GPS를 지원하지 않는 경우
-      sortToilets(userLocation);
-    }
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        showMessage('GPS를 사용할 수 없어 강남역을 기준으로 검색합니다.');
+        sortToilets(userLocation);
+        return;
+      }
+      try {
+        const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        const loc = { lat: position.coords.latitude, lon: position.coords.longitude };
+        setUserLocation(loc);
+        sortToilets(loc);
+        fetchNearbyPlaces(loc);
+      } catch (error) {
+        console.error('GPS 오류:', error);
+        showMessage('GPS를 사용할 수 없어 강남역을 기준으로 검색합니다.');
+        sortToilets(userLocation);
+        fetchNearbyPlaces(userLocation);
+      }
+    })();
   }, []);
+
+  // ─── 근처 장소 상세 페이지로 이동 ───
+  const showPlaceDetail = (place: SearchPlace) => {
+    router.push({
+      pathname: '/(tabs)/restroom_details',
+      params: { place: JSON.stringify(place) },
+    });
+  };
 
   // ─── 화장실 상세 페이지로 이동 ───
   const showDetail = (toilet: Toilet) => {
@@ -220,10 +266,11 @@ export default function RestroomFinder() {
           - selectedSearchPlaceId: 선택된 검색 마커를 주황색으로 강조
         */}
         <KakaoMapView
-          toilets={[]}
+          toilets={toiletList}
           userLocation={userLocation}
           onMarkerClick={handleMarkerClick}
           onSearchMarkerClick={handleSearchMarkerClick}
+          nearbyPlaces={nearbyPlaces}
           recenterTrigger={recenterTrigger}
           searchKeyword={searchKeyword}
           selectedToiletId={selectedToilet?.id}
@@ -274,37 +321,36 @@ export default function RestroomFinder() {
         </View>
       )}
 
-      {/* ── 검색 결과 마커 클릭 시 미리보기 카드 ── */}
-      {/* 현재는 가데이터 사용, 추후 API 연동 시 실제 데이터로 교체 예정 */}
+      {/* ── 근처 장소 마커 클릭 시 미리보기 카드 ── */}
       {selectedSearchPlace && (
         <View style={styles.previewCard}>
-          {/* 닫기 버튼 */}
           <Pressable style={styles.previewCardClose} onPress={() => setSelectedSearchPlace(null)}>
-            <Ionicons name="close" size={20} color="#6B7280" />
+            <Ionicons name="close" size={20} color="#D2B48C" />
           </Pressable>
 
-          {/* 장소명 (카카오 검색 결과) */}
           <Text style={styles.previewCardName}>{selectedSearchPlace.name}</Text>
-
-          {/* 주소 (카카오 검색 결과) */}
           <Text style={styles.previewCardAddress}>{selectedSearchPlace.address}</Text>
 
-          {/* 별점 + 평가 수 + 거리 (가데이터 - 추후 API 연동) */}
           <View style={styles.previewCardRatingRow}>
-            <Text style={styles.previewCardRatingText}>4.2</Text>
-            <Text style={styles.previewCardRatingCount}>(12명 평가)</Text>
-            <Text style={styles.previewCardDistance}>0.3 km</Text>
+            <Text style={styles.previewCardRatingText}>0.0</Text>
+            <Text style={styles.previewCardRatingCount}>(평가 없음)</Text>
+            {selectedSearchPlace.distance && (
+              <Text style={styles.previewCardDistance}>
+                {parseInt(selectedSearchPlace.distance) >= 1000
+                  ? `${(parseInt(selectedSearchPlace.distance) / 1000).toFixed(1)} km`
+                  : `${selectedSearchPlace.distance} m`}
+              </Text>
+            )}
           </View>
 
-          {/* 편의시설 태그 (가데이터 - 추후 API 연동) */}
+          {/* 카테고리 태그 */}
           <View style={styles.previewCardTags}>
-            <Text style={styles.checklistTag}>공용</Text>
-            <Text style={[styles.checklistTag, { backgroundColor: '#A0522D' }]}>비데</Text>
-            <Text style={styles.checklistTag}>휴지</Text>
+            <Text style={styles.checklistTag}>
+              {selectedSearchPlace.category.split(' > ')[1] || selectedSearchPlace.category.split(' > ')[0]}
+            </Text>
           </View>
 
-          {/* 상세보기 버튼 (추후 연동) */}
-          <Pressable style={styles.previewCardDetailBtn} onPress={() => {}}>
+          <Pressable style={styles.previewCardDetailBtn} onPress={() => showPlaceDetail(selectedSearchPlace)}>
             <Text style={styles.previewCardDetailText}>상세보기</Text>
           </Pressable>
         </View>
@@ -313,7 +359,7 @@ export default function RestroomFinder() {
       {/* ── 하단 화장실 목록 시트 ── */}
       {/* 마커가 선택되지 않은 경우에만 표시 */}
       {!selectedToilet && !selectedSearchPlace && (
-        <ToiletListSheet toiletList={toiletList} showDetail={showDetail} />
+        <ToiletListSheet toiletList={toiletList} showDetail={showDetail} showPlaceDetail={showPlaceDetail} nearbyPlaces={nearbyPlaces} />
       )}
 
       {/* ── GPS 실패 등 알림 메시지 모달 ── */}
